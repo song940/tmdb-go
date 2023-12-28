@@ -88,13 +88,47 @@ type MovieDetailRequest struct {
 	Language string `json:"language"`
 }
 
+type Member struct {
+	Audlt              bool    `json:"adult"`
+	Gender             int     `json:"gender"`
+	ID                 int     `json:"id"`
+	KnownForDepartment string  `json:"known_for_department"`
+	Name               string  `json:"name"`
+	OriginalName       string  `json:"original_name"`
+	Popularity         float32 `json:"popularity"`
+	ProfilePath        string  `json:"profile_path"`
+	CastID             int     `json:"cast_id"`
+	Character          string  `json:"character"`
+	CreditID           string  `json:"credit_id"`
+}
+
+type CastMember struct {
+	Member
+
+	Order int `json:"order"`
+}
+
+type CrewMember struct {
+	Member
+
+	Department string `json:"department"`
+	Job        string `json:"job"`
+}
+
+type MovieCreditsResponse struct {
+	ID   int          `json:"id"`
+	Cast []CastMember `json:"cast"`
+	Crew []CrewMember `json:"crew"`
+}
+
 // Search for movies by their original, translated and alternative titles.
 // https://developer.themoviedb.org/reference/search-movie
-func (client *TMDBClient) SearchMovie(query string, opts *SearchMovieRequest) (res *SearchMovieResponse, err error) {
+func (client *Client) SearchMovie(query string, opts *SearchMovieRequest) (res *SearchMovieResponse, err error) {
 	if opts == nil {
-		opts = &SearchMovieRequest{
-			Page: 1,
-		}
+		opts = &SearchMovieRequest{}
+	}
+	if opts.Page < 1 {
+		opts.Page = 1
 	}
 	data, err := client.get("/search/movie", map[string]string{
 		"query":                query,
@@ -114,11 +148,22 @@ func (client *TMDBClient) SearchMovie(query string, opts *SearchMovieRequest) (r
 
 // Get the top level details of a movie by ID.
 // https://developer.themoviedb.org/reference/movie-details
-func (client *TMDBClient) GetMovieDetail(id int, opts MovieDetailRequest) (detail *MovieDetail, err error) {
+func (client *Client) GetMovieDetail(id int, opts *MovieDetailRequest) (detail *MovieDetail, err error) {
 	data, err := client.get(fmt.Sprintf("/movie/%d", id), nil)
 	if err != nil {
 		return
 	}
 	err = json.Unmarshal(data, &detail)
+	return
+}
+
+// Get the cast and crew for a movie.
+// https://developer.themoviedb.org/reference/movie-credits
+func (client *Client) GetMovieCredits(id int) (credits *MovieCreditsResponse, err error) {
+	data, err := client.get(fmt.Sprintf("/movie/%d/credits", id), nil)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(data, &credits)
 	return
 }

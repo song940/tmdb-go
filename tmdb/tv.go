@@ -119,11 +119,12 @@ type TVDetailRequest struct {
 
 // Search for TV shows by their original, translated and also known as names.
 // https://developer.themoviedb.org/reference/search-tv
-func (client *TMDBClient) SearchTV(query string, opts *SearchTVRequest) (res *SearchTVResponse, err error) {
+func (client *Client) SearchTV(query string, opts *SearchTVRequest) (res *SearchTVResponse, err error) {
 	if opts == nil {
-		opts = &SearchTVRequest{
-			Page: 1,
-		}
+		opts = &SearchTVRequest{}
+	}
+	if opts.Page < 1 {
+		opts.Page = 1
 	}
 	data, err := client.get("/search/tv", map[string]string{
 		"query":               query,
@@ -142,7 +143,7 @@ func (client *TMDBClient) SearchTV(query string, opts *SearchTVRequest) (res *Se
 
 // Get the details of a TV show.
 // https://developer.themoviedb.org/reference/tv-series-details
-func (client *TMDBClient) GetTVDetail(id int, opts *TVDetailRequest) (detail *TVDetail, err error) {
+func (client *Client) GetTVDetail(id int, opts *TVDetailRequest) (detail *TVDetail, err error) {
 	if opts == nil {
 		opts = &TVDetailRequest{}
 	}
@@ -153,5 +154,16 @@ func (client *TMDBClient) GetTVDetail(id int, opts *TVDetailRequest) (detail *TV
 		return
 	}
 	err = json.Unmarshal(data, &detail)
+	return
+}
+
+// Get the latest season credits of a TV show.
+// https://developer.themoviedb.org/reference/tv-series-credits
+func (client *Client) GetTVCredits(id int) (credits *MovieCreditsResponse, err error) {
+	data, err := client.get(fmt.Sprintf("/tv/%d/credits", id), nil)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(data, &credits)
 	return
 }
