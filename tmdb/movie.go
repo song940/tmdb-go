@@ -90,6 +90,8 @@ type MovieDetailRequest struct {
 }
 
 type Member struct {
+	Character          string  `json:"character"`
+	CreditID           string  `json:"credit_id"`
 	Audlt              bool    `json:"adult"`
 	Gender             int     `json:"gender"`
 	ID                 int     `json:"id"`
@@ -98,15 +100,13 @@ type Member struct {
 	OriginalName       string  `json:"original_name"`
 	Popularity         float32 `json:"popularity"`
 	ProfilePath        string  `json:"profile_path"`
-	CastID             int     `json:"cast_id"`
-	Character          string  `json:"character"`
-	CreditID           string  `json:"credit_id"`
 }
 
 type CastMember struct {
 	Member
 
-	Order int `json:"order"`
+	CastID int `json:"cast_id"`
+	Order  int `json:"order"`
 }
 
 type CrewMember struct {
@@ -120,7 +120,7 @@ type MovieCreditsRequest struct {
 	Language string `json:"language"`
 }
 
-type MovieCreditsResponse struct {
+type MovieCredits struct {
 	ID   int          `json:"id"`
 	Cast []CastMember `json:"cast"`
 	Crew []CrewMember `json:"crew"`
@@ -169,7 +169,7 @@ func (client *Client) GetMovieDetail(id int, opts *MovieDetailRequest) (detail *
 
 // Get the cast and crew for a movie.
 // https://developer.themoviedb.org/reference/movie-credits
-func (client *Client) GetMovieCredits(id int, opts *MovieCreditsRequest) (credits *MovieCreditsResponse, err error) {
+func (client *Client) GetMovieCredits(id int, opts *MovieCreditsRequest) (credits *MovieCredits, err error) {
 	if opts == nil {
 		opts = &MovieCreditsRequest{}
 	}

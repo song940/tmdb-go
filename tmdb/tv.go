@@ -94,13 +94,14 @@ type TVDetail struct {
 		Name      string `json:"name"`
 	} `json:"production_countries"`
 	Seasons []struct {
-		AirDate      string `json:"air_date"`
-		EpisodeCount int    `json:"episode_count"`
-		ID           int64  `json:"id"`
-		Name         string `json:"name"`
-		Overview     string `json:"overview"`
-		PosterPath   string `json:"poster_path"`
-		SeasonNumber int    `json:"season_number"`
+		AirDate      string  `json:"air_date"`
+		EpisodeCount int     `json:"episode_count"`
+		ID           int64   `json:"id"`
+		Name         string  `json:"name"`
+		Overview     string  `json:"overview"`
+		PosterPath   string  `json:"poster_path"`
+		SeasonNumber int     `json:"season_number"`
+		VoteAverage  float32 `json:"vote_average"`
 	} `json:"seasons"`
 	SpokenLanguages []struct {
 		ISO639_1    string `json:"iso_639_1"`
@@ -119,6 +120,36 @@ type TVDetailRequest struct {
 
 type TVCreditsRequest struct {
 	Language string `json:"language"`
+}
+
+type GuestStar struct {
+	Member
+
+	Order int `json:"order"`
+}
+
+type TVSeasonDetail struct {
+	ID          string  `json:"_id"`
+	Name        string  `json:"name"`
+	PosterPath  string  `json:"poster_path"`
+	Season      int     `json:"season_number"`
+	VoteAverage float32 `json:"vote_average"`
+	AirDate     string  `json:"air_date"`
+	Episodes    []struct {
+		ID             int          `json:"id"`
+		Name           string       `json:"name"`
+		Overview       string       `json:"overview"`
+		AirDate        string       `json:"air_date"`
+		Episode        int          `json:"episode_number"`
+		Season         int          `json:"season_number"`
+		ShowID         int          `json:"show_id"`
+		ProductionCode string       `json:"production_code"`
+		StillPath      string       `json:"still_path"`
+		VoteAverage    float32      `json:"vote_average"`
+		VoteCount      int          `json:"vote_count"`
+		Crew           []CrewMember `json:"crew"`
+		GuestStars     []GuestStar  `json:"guest_stars"`
+	}
 }
 
 // Search for TV shows by their original, translated and also known as names.
@@ -163,7 +194,7 @@ func (client *Client) GetTVDetail(id int, opts *TVDetailRequest) (detail *TVDeta
 
 // Get the latest season credits of a TV show.
 // https://developer.themoviedb.org/reference/tv-series-credits
-func (client *Client) GetTVCredits(id int, opts *TVCreditsRequest) (credits *MovieCreditsResponse, err error) {
+func (client *Client) GetTVCredits(id int, opts *TVCreditsRequest) (credits *MovieCredits, err error) {
 	if opts == nil {
 		opts = &TVCreditsRequest{}
 	}
@@ -174,5 +205,22 @@ func (client *Client) GetTVCredits(id int, opts *TVCreditsRequest) (credits *Mov
 		return
 	}
 	err = json.Unmarshal(data, &credits)
+	return
+}
+
+// Query the details of a TV season.
+// https://developer.themoviedb.org/reference/tv-season-details
+func (client *Client) GetTVSeason(id int, season int, opts *TVDetailRequest) (detail *TVSeasonDetail, err error) {
+	if opts == nil {
+		opts = &TVDetailRequest{}
+	}
+	data, err := client.get(fmt.Sprintf("/tv/%d/season/%d", id, season), map[string]string{
+		"language": opts.Language,
+	})
+	if err != nil {
+		return
+	}
+	detail = &TVSeasonDetail{}
+	err = json.Unmarshal(data, &detail)
 	return
 }
