@@ -4,18 +4,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/song940/tmdb-go/persistent"
 	"github.com/song940/tmdb-go/tmdb"
 )
-
-func search(client *tmdb.Client) {
-	res, err := client.SearchMovie("The Matrix", nil)
-	if err != nil {
-		panic(err)
-	}
-	for _, movie := range res.Results {
-		log.Println(movie.ID, movie.Title)
-	}
-}
 
 func main() {
 	// command := os.Args[1]
@@ -23,10 +14,21 @@ func main() {
 		APIKey:      os.Getenv("TMDB_API_KEY"),
 		AccessToken: os.Getenv("TMDB_ACCESS_TOKEN"),
 	}
-	client, err := tmdb.NewClient(config)
+	client, err := persistent.NewClient(&persistent.Config{
+		Config: *config,
+	})
 	if err != nil {
 		panic(err)
 	}
+
+	searchResult, err := client.SearchMovie("The Matrix", nil)
+	if err != nil {
+		panic(err)
+	}
+	for _, movie := range searchResult.Results {
+		log.Println(movie.ID, movie.Title)
+	}
+
 	detail, err := client.GetTVSeason(1399, 1, nil)
 	if err != nil {
 		panic(err)
@@ -35,15 +37,12 @@ func main() {
 	for _, episode := range detail.Episodes {
 		log.Println(episode.Name)
 	}
-	// switch command {
-	// case "search":
-	// 	search(client)
-	// case "get_movie":
-	// 	res, err := client.GetMovieDetail(603, nil)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	log.Println(res.Title)
+
+	movieDetail, err := client.GetMovieDetail(603, nil)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(movieDetail.Title)
 	// case "get_movie_credits":
 	// 	res, err := client.GetMovieCredits(603, nil)
 	// 	if err != nil {

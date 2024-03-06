@@ -152,6 +152,8 @@ type TVSeasonDetail struct {
 	}
 }
 
+type TVEpisodeDetail struct{}
+
 // Search for TV shows by their original, translated and also known as names.
 // https://developer.themoviedb.org/reference/search-tv
 func (client *Client) SearchTV(query string, opts *SearchTVRequest) (res *SearchTVResponse, err error) {
@@ -222,5 +224,20 @@ func (client *Client) GetTVSeason(id int, season int, opts *TVDetailRequest) (de
 	}
 	detail = &TVSeasonDetail{}
 	err = json.Unmarshal(data, &detail)
+	return
+}
+
+func (client *Client) GetTVEpisode(seriesId int, seasonNumber int, episodeNumber int, opts *TVDetailRequest) (episode *TVEpisodeDetail, err error) {
+	if opts == nil {
+		opts = &TVDetailRequest{}
+	}
+	data, err := client.get(fmt.Sprintf("/tv/%d/season/%d/episode/%d", seriesId, seasonNumber, episodeNumber), map[string]string{
+		"language": opts.Language,
+	})
+	if err != nil {
+		return
+	}
+	episode = &TVEpisodeDetail{}
+	err = json.Unmarshal(data, &episode)
 	return
 }
